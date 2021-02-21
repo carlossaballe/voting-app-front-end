@@ -26,8 +26,8 @@ const useStyles = makeStyles({
     }
 });
 
-function createData(firstname: string, lastname: string, age: number, slogan: string, protein: number) {
-    return { firstname, lastname, age, slogan, protein };
+const createData = (firstname: string, lastname: string, age: number, slogan: string, votes: number) => {
+    return { firstname, lastname, age, slogan, votes };
 }
 
 const rows = [
@@ -78,7 +78,7 @@ export default function CandidateList() {
                             <TableCell>{row.lastname}</TableCell>
                             <TableCell >{row.age}</TableCell>
                             <TableCell>{row.slogan}</TableCell>
-                            <TableCell>{row.protein}</TableCell>
+                            <TableCell>{row.votes}</TableCell>
                             <TableCell align='center' className={classes.last}>
                                 <IconButton edge="start" className={classes.up} aria-label="up">
                                     <ThumbUpIcon />
