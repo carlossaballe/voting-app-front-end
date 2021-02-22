@@ -45,7 +45,6 @@ export default function CandidateList(): JSX.Element {
     const [updateCandidate] = useMutation(UPDATE_VOTES);
     
     let info: any[] = [];
-    let votes: any[] = [];
     
     if(loading) return <div>loading</div>;
     if(error) return <div>Error</div>;
@@ -53,7 +52,6 @@ export default function CandidateList(): JSX.Element {
     const dataInfo = data.getCandidates;
 
     dataInfo.forEach((candidate: any) => {
-        votes.push({ id: candidate.id, votes: candidate.votes })
         createData(candidate.firstname, candidate.lastname, candidate.age, candidate.slogan, candidate.votes);
     });
 
@@ -72,7 +70,7 @@ export default function CandidateList(): JSX.Element {
 
     return (
         <TableContainer component={Paper}>
-            <Table className={classes.table} aria-label="simple table">
+            <Table className={classes.table} size="small" aria-label="simple table">
 
                 <TableHead>
                     <TableRow>
