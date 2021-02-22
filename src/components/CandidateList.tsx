@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -10,52 +10,58 @@ import Paper from '@material-ui/core/Paper';
 import IconButton from '@material-ui/core/IconButton';
 import ThumbUpIcon from '@material-ui/icons/ThumbUp';
 import ThumbDownIcon from '@material-ui/icons/ThumbDown';
+import { useQuery, gql } from '@apollo/client';
 
-const useStyles = makeStyles({
-    table: {
-        minWidth: 650,
-    },
-    up: {
-        color: 'rgb(215,245,214)'
-    },
-    down: {
-        color: 'rgb(242,198,194)'
-    },
-    last: {
-        paddingLeft: '30px'
+const GET_CANDIDATES = gql`{
+    getCandidates {
+      id
+      firstname
+      lastname
+      age
+      slogan
+      votes
     }
-});
+}`
+
+interface Control {
+    id: number;
+    votes: number;
+}
 
 const createData = (firstname: string, lastname: string, age: number, slogan: string, votes: number) => {
     return { firstname, lastname, age, slogan, votes };
 }
 
-const rows = [
-    createData('Carlos', 'Saballe', 18, 'Slogan 1 test', 4),
-    createData('Ana', 'Florez', 25, 'I am a blue car', 4),
-    createData('Juan', 'García', 30, 'Telmi mor aboud yursel', 6),
-    createData('Silvestre', 'Dangond', 78, 'Cantinero deme un trago, dos tragos...', 2),
-    createData('Maria', 'Perez', 43, 'La vaca lola está loca', 10),
-    createData('Carlos', 'Saballe', 18, 'Slogan 1 test', 4),
-    createData('Ana', 'Florez', 25, 'I am a blue car', 4),
-    createData('Juan', 'García', 30, 'Telmi mor aboud yursel', 6),
-    createData('Silvestre', 'Dangond', 78, 'Cantinero deme un trago, dos tragos...', 2),
-    createData('Maria', 'Perez', 43, 'La vaca lola está loca', 10),
-    createData('Carlos', 'Saballe', 18, 'Slogan 1 test', 4),
-    createData('Ana', 'Florez', 25, 'I am a blue car', 4),
-    createData('Juan', 'García', 30, 'Telmi mor aboud yursel', 6),
-    createData('Silvestre', 'Dangond', 78, 'Cantinero deme un trago, dos tragos...', 2),
-    createData('Maria', 'Perez', 43, 'La vaca lola está loca', 10),
-    createData('Carlos', 'Saballe', 18, 'Slogan 1 test', 4),
-    createData('Ana', 'Florez', 25, 'I am a blue car', 4),
-    createData('Juan', 'García', 30, 'Telmi mor aboud yursel', 6),
-    createData('Silvestre', 'Dangond', 78, 'Cantinero deme un trago, dos tragos...', 2),
-    createData('Maria', 'Perez', 43, 'La vaca lola está loca', 10),
-];
-
 export default function CandidateList() {
-    const classes = useStyles();
 
+    const classes = useStyles();
+    const { data, loading, error } = useQuery(GET_CANDIDATES);
+    const [votesCounter, setVotesCounter] = useState<Control[]>([]);
+
+    let rows: any[] = [];
+    let votes: any[] = [];
+
+    const add = (id:number, votes:number) => {
+  
+        const counter = [...votesCounter, { id, votes }];
+        console.log(counter);
+        
+        setVotesCounter(counter)
+    }
+
+    if (data) {
+        let candidates = data.getCandidates;
+
+        candidates.forEach((cand: any) => {
+            votes.push({ id: cand.id, votes: cand.votes })
+            createData(cand.firstname, cand.lastname, cand.age, cand.slogan, cand.votes)
+        });
+
+        rows = candidates;
+    }
+
+    console.log(votes);
+    
     return (
         <TableContainer component={Paper}>
             <Table className={classes.table} aria-label="simple table">
@@ -66,19 +72,19 @@ export default function CandidateList() {
                         <TableCell>Lastname</TableCell>
                         <TableCell>Age</TableCell>
                         <TableCell>Slogan</TableCell>
-                        <TableCell>Votes</TableCell>
+                        <TableCell align='center'>Votes</TableCell>
                         <TableCell align='center'>Voting for</TableCell>
                     </TableRow>
                 </TableHead>
 
                 <TableBody>
-                    {rows.map((row) => (
-                        <TableRow key={row.firstname}>
+                    {rows.map((row, i) => (
+                        <TableRow key={i}>
                             <TableCell>{row.firstname}</TableCell>
                             <TableCell>{row.lastname}</TableCell>
                             <TableCell >{row.age}</TableCell>
                             <TableCell>{row.slogan}</TableCell>
-                            <TableCell>{row.votes}</TableCell>
+                            <TableCell align='center'>{row.votes}</TableCell>
                             <TableCell align='center' className={classes.last}>
                                 <IconButton edge="start" className={classes.up} aria-label="up">
                                     <ThumbUpIcon />
@@ -96,3 +102,18 @@ export default function CandidateList() {
         </TableContainer>
     );
 }
+
+const useStyles = makeStyles({
+    table: {
+        minWidth: 650,
+    },
+    up: {
+        color: 'rgb(215,245,214)'
+    },
+    down: {
+        color: 'rgb(242,198,194)'
+    },
+    last: {
+        paddingLeft: '30px'
+    }
+});
