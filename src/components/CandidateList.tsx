@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -10,7 +10,7 @@ import Paper from '@material-ui/core/Paper';
 import IconButton from '@material-ui/core/IconButton';
 import ThumbUpIcon from '@material-ui/icons/ThumbUp';
 import ThumbDownIcon from '@material-ui/icons/ThumbDown';
-import { useQuery, gql } from '@apollo/client';
+import { useQuery, useMutation, gql } from '@apollo/client';
 
 const GET_CANDIDATES = gql`{
     getCandidates {
@@ -21,47 +21,55 @@ const GET_CANDIDATES = gql`{
       slogan
       votes
     }
-}`
+}`;
 
-interface Control {
-    id: number;
-    votes: number;
-}
+const UPDATE_VOTES = gql`
+    mutation update ($id: Int!, $votes: Int!){
+        updateVotes(id: $id, data:{
+            votes: $votes
+        }){
+            id
+            votes
+        }
+    }
+`;
 
 const createData = (firstname: string, lastname: string, age: number, slogan: string, votes: number) => {
     return { firstname, lastname, age, slogan, votes };
 }
 
-export default function CandidateList() {
+export default function CandidateList(): JSX.Element {
 
     const classes = useStyles();
-    const { data, loading, error } = useQuery(GET_CANDIDATES);
-    const [votesCounter, setVotesCounter] = useState<Control[]>([]);
-
-    let rows: any[] = [];
-    let votes: any[] = [];
-
-    const add = (id:number, votes:number) => {
-  
-        const counter = [...votesCounter, { id, votes }];
-        console.log(counter);
-        
-        setVotesCounter(counter)
-    }
-
-    if (data) {
-        let candidates = data.getCandidates;
-
-        candidates.forEach((cand: any) => {
-            votes.push({ id: cand.id, votes: cand.votes })
-            createData(cand.firstname, cand.lastname, cand.age, cand.slogan, cand.votes)
-        });
-
-        rows = candidates;
-    }
-
-    console.log(votes);
+    const { loading, error, data } = useQuery(GET_CANDIDATES);
+    const [updateCandidate] = useMutation(UPDATE_VOTES);
     
+    let info: any[] = [];
+    let votes: any[] = [];
+    
+    if(loading) return <div>loading</div>;
+    if(error) return <div>Error</div>;
+
+    const dataInfo = data.getCandidates;
+
+    dataInfo.forEach((candidate: any) => {
+        votes.push({ id: candidate.id, votes: candidate.votes })
+        createData(candidate.firstname, candidate.lastname, candidate.age, candidate.slogan, candidate.votes);
+    });
+
+    info = dataInfo;
+
+    const handleVotes = (type: string, id: number, votes: number) => {
+        if (type === 'up' && votes < 20) {
+            votes++;
+            updateCandidate({ variables: { id, votes: votes} })
+        }
+        if (type === 'down' && votes > 0) {
+            votes--;
+            updateCandidate({ variables: { id, votes: votes} })
+        }
+    }
+
     return (
         <TableContainer component={Paper}>
             <Table className={classes.table} aria-label="simple table">
@@ -78,7 +86,7 @@ export default function CandidateList() {
                 </TableHead>
 
                 <TableBody>
-                    {rows.map((row, i) => (
+                    {info.map((row, i) => (
                         <TableRow key={i}>
                             <TableCell>{row.firstname}</TableCell>
                             <TableCell>{row.lastname}</TableCell>
@@ -86,11 +94,11 @@ export default function CandidateList() {
                             <TableCell>{row.slogan}</TableCell>
                             <TableCell align='center'>{row.votes}</TableCell>
                             <TableCell align='center' className={classes.last}>
-                                <IconButton edge="start" className={classes.up} aria-label="up">
+                                <IconButton edge="start" className={classes.up} aria-label="up" onClick={() => handleVotes('up', row.id, row.votes)}>
                                     <ThumbUpIcon />
                                 </IconButton>
                                 &nbsp;&nbsp;&nbsp;
-                                <IconButton edge="start" className={classes.down} aria-label="down">
+                                <IconButton edge="start" className={classes.down} aria-label="down" onClick={() => handleVotes('down', row.id, row.votes)}>
                                     <ThumbDownIcon />
                                 </IconButton>
                             </TableCell>
