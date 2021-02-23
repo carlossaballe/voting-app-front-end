@@ -1,15 +1,16 @@
-import React, { Fragment } from 'react';
-import logo from './logo.svg';
-import './App.css';
-import ButtonAppBar from './components/HeaderAppBar';
-import CandidateList from './components/CandidateList';
+import React from 'react';
+import { BrowserRouter, Switch, Route} from 'react-router-dom';
+import Main from './components/Main';
+import NotFound from './components/NotFound';
 
 function App() {
   return (
-    <Fragment>
-      <ButtonAppBar/>
-      <CandidateList/>
-    </Fragment>
+    <BrowserRouter>
+      <Switch>
+        <Route path='/' exact component={Main}/>
+        <Route path='/*' component={NotFound}/>
+      </Switch>
+    </BrowserRouter>
   );
 }
 
