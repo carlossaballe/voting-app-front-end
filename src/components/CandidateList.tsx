@@ -43,19 +43,25 @@ export default function CandidateList(): JSX.Element {
     const classes = useStyles();
     const { loading, error, data } = useQuery(GET_CANDIDATES);
     const [updateCandidate] = useMutation(UPDATE_VOTES);
+    const [allVotes, setAllVotes] = useState(0);
     
     let info: any[] = [];
+    let totalVotes = 0;
+
+    if(data) {
+        const dataInfo = data.getCandidates;
     
-    if(loading) return <div>loading</div>;
-    if(error) return <div>Error</div>;
+        dataInfo.forEach((candidate: any) => {
+            totalVotes += candidate.votes;
+            createData(candidate.firstname, candidate.lastname, candidate.age, candidate.slogan, candidate.votes);
+        });
+    
+        info = dataInfo;
+    }
 
-    const dataInfo = data.getCandidates;
-
-    dataInfo.forEach((candidate: any) => {
-        createData(candidate.firstname, candidate.lastname, candidate.age, candidate.slogan, candidate.votes);
-    });
-
-    info = dataInfo;
+    useEffect(() => {
+        setAllVotes(totalVotes);
+    }, [totalVotes])
 
     const handleVotes = (type: string, id: number, votes: number) => {
         if (type === 'up' && votes < 20) {
@@ -69,9 +75,10 @@ export default function CandidateList(): JSX.Element {
     }
 
     return (
+        <>
+        <div className={classes.total}>Total votes : {allVotes}</div>
         <TableContainer component={Paper}>
             <Table className={classes.table} size="small" aria-label="simple table">
-
                 <TableHead>
                     <TableRow>
                         <TableCell>Firstname</TableCell>
@@ -106,6 +113,7 @@ export default function CandidateList(): JSX.Element {
 
             </Table>
         </TableContainer>
+        </>
     );
 }
 
@@ -121,5 +129,11 @@ const useStyles = makeStyles({
     },
     last: {
         paddingLeft: '30px'
+    },
+    total: {
+        padding: '1rem',
+        fontWeight: 'bolder',
+        textAlign: 'center',
+        backgroundColor: 'rgb(240, 240, 240)'
     }
 });
